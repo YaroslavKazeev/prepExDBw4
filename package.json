@@ -20,6 +20,7 @@
   "homepage": "https://github.com/YaroslavKazeev/prepExDBw4#readme",
   "dependencies": {
     "dotenv": "^17.2.2",
-    "mongodb": "^6.19.0"
+    "mongodb": "^6.19.0",
+    "pg": "^8.16.3"
   }
 }
