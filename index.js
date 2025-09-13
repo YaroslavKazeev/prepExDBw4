@@ -1,8 +1,7 @@
 import { MongoClient } from "mongodb";
 import { config as configDotenv } from "dotenv";
 configDotenv({ silent: true });
-const url = process.env.MONGODB_URL;
-const clientMongo = new MongoClient(url);
+const clientMongo = new MongoClient(process.env.MONGODB_URL);
 
 import { Client } from "pg";
 const config = {
@@ -15,22 +14,28 @@ const config = {
 const clientPG = new Client(config);
 let queryRes;
 
-clientPG.connect();
-queryRes = await clientPG.query("SELECT * FROM recipes;");
-console.log("\nrecipes:", JSON.stringify(queryRes.rows, null, 2));
-clientPG.end();
-
-async function createCollection() {
+async function migrateSQLtoMongo() {
   try {
     await clientMongo.connect();
     const db = clientMongo.db("prepExDBw4");
-    await db.createCollection("myCollection");
-    console.log("Collection created!");
+    clientPG.connect();
+    const GET_TABLE_NAMES = `
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema = \'public\'
+    AND table_type = \'BASE TABLE\';
+    `;
+    queryRes = await clientPG.query(GET_TABLE_NAMES);
+    for (let i = 0; i < queryRes.rows.length; i++) {
+      await db.createCollection(queryRes.rows[i].table_name);
+    }
+    console.log("Data migrated!");
   } catch (err) {
-    console.error("Error creating collection:", err);
+    console.error("Error migrating data:", err);
   } finally {
-    await clientMongo.close();
+    clientMongo.close();
+    clientPG.end();
   }
 }
 
-createCollection();
+migrateSQLtoMongo();
