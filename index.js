@@ -1,17 +1,16 @@
 import { MongoClient } from "mongodb";
-import { config as configDotenv } from "dotenv";
-configDotenv({ silent: true });
+import "dotenv/config";
 const clientMongo = new MongoClient(process.env.MONGODB_URL);
 
 import { Client } from "pg";
-const config = {
+const configPG = {
   host: "localhost",
   user: "hyfuser",
   password: "hyfpassword",
   database: "prepExDBw3",
   port: 5432,
 };
-const clientPG = new Client(config);
+const clientPG = new Client(configPG);
 let queryRes;
 
 async function migrateSQLtoMongo() {
